@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AppAdmin {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Company {
+  id           String        @id @default(uuid())
+  companyCode  String        @unique
+  name         String
+  email        String        @unique
+  passwordHash String
+  profileImage String?
+  status       CompanyStatus @default(PENDING)
+  ownerName    String
+  ownerEmail   String
+  ownerPhone   String
+  createdAt    DateTime      @default(now())
+  staff        Staff[]
+  customers    Customer[]
+}
+
+model Staff {
+  id           String      @id @default(uuid())
+  companyId    String
+  name         String
+  email        String      @unique
+  passwordHash String
+  role         Role        @default(STAFF)
+  status       StaffStatus @default(PENDING)
+  createdAt    DateTime    @default(now())
+  company      Company     @relation(fields: [companyId], references: [id])
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  email     String
+  phone     String?
+  createdAt DateTime @default(now())
+  company   Company  @relation(fields: [companyId], references: [id])
+}
+
+
+enum CompanyStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+enum Role {
+  SUPER_ADMIN
+  STAFF
+}
+
+enum StaffStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderType {
+  NEW
+  AMENDMENT
+}
+
+enum OrderStatus {
+  RECEIVED
+  CUT_IN_PROGRESS
+  SEWING_IN_PROGRESS
+  FINISHING
+  COMPLETED
+}
