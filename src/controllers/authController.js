@@ -28,4 +28,15 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { registerCompany, login };
+const registerStaff = async (req, res)=>{
+    try{
+        const result = await authService.registerStaff(req.body);
+        res.status(201).json(result);
+    }
+    catch(error){
+        const statusCode = error.statusCode || 500
+        res.status(statusCode).json({ message: error.message })
+    }
+}
+
+module.exports = { registerCompany, login, registerStaff };

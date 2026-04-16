@@ -40,8 +40,9 @@ model Company {
 model Staff {
   id           String      @id @default(uuid())
   companyId    String
-  fullName         String
+  fullName      String
   email        String      @unique
+  phone        String?
   passwordHash String
   role         Role        @default(STAFF)
   status       StaffStatus @default(PENDING)

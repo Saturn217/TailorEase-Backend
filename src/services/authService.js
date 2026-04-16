@@ -110,7 +110,7 @@ const login = async (data) => {
 
 
     if (staff.status === 'PENDING') {
-        throw  new AppError('Your account is awaiting approval from your company admin', 403)
+        throw new AppError('Your account is awaiting approval from your company admin', 403)
     }
     if (staff.status === 'REJECTED') {
         throw new AppError('Your account was rejected, contact your company admin', 403)
@@ -129,6 +129,7 @@ const login = async (data) => {
             email: staff.email,
             role: staff.role,
             status: staff.status,
+            createdAt: staff.createdAt,
             company: {
                 id: staff.company.id,
                 companyCode: staff.company.companyCode,
@@ -139,4 +140,68 @@ const login = async (data) => {
 
 }
 
-module.exports = { registerCompany, login }
+const registerStaff = async (data) => {
+
+
+    const { companyCode, fullName, email, password, phone } = data
+    if (!companyCode || !fullName || !email || !password) {
+        throw new AppError('All fields are required', 400)
+    }
+
+
+    const company = await prisma.company.findUnique({
+        where: { companyCode }
+    })
+    if (!company) {
+        throw new AppError('Company not found', 404)
+    }
+
+    if (company.status !== 'APPROVED') {
+        throw new AppError('This company is not active', 403)
+    }
+
+    const existingStaff = await prisma.staff.findUnique({
+        where: { email }
+    })
+    if (existingStaff) {
+        throw new AppError('Email already exists', 409)
+    }
+
+
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const staff = await prisma.staff.create({
+        data: {
+            fullName,
+            email,
+            companyId: company.id,
+            passwordHash: hashedPassword,
+            phone: phone || null,
+            role: "STAFF",
+            status: "PENDING",
+            createdAt: new Date()
+
+        }
+    })
+
+    return {
+        message: "Staff registered successfully, awaiting company admin approval",
+        staff: {
+            id: staff.id,
+            fullName: staff.fullName,
+            email: staff.email,
+            role: staff.role,
+            status: staff.status,
+            createdAt: staff.createdAt,
+            company: {
+                id: company.id,
+                companyName: company.companyName,
+            }
+        }
+    }
+
+}
+
+module.exports = { registerCompany, login, registerStaff }
