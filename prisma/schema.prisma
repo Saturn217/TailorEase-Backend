@@ -24,12 +24,12 @@ model AppAdmin {
 model Company {
   id           String        @id @default(uuid())
   companyCode  String        @unique
-  name         String
+  companyName  String
   email        String        @unique
   passwordHash String
-  profileImage String?
+  companyImage String?
   status       CompanyStatus @default(PENDING)
-  ownerName    String
+  ownerFullname String
   ownerEmail   String
   ownerPhone   String
   createdAt    DateTime      @default(now())
@@ -40,7 +40,7 @@ model Company {
 model Staff {
   id           String      @id @default(uuid())
   companyId    String
-  name         String
+  fullName         String
   email        String      @unique
   passwordHash String
   role         Role        @default(STAFF)
@@ -64,6 +64,7 @@ enum CompanyStatus {
   PENDING
   APPROVED
   SUSPENDED
+  REJECTED
 }
 
 enum Role {
@@ -75,6 +76,7 @@ enum StaffStatus {
   PENDING
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 enum OrderType {
