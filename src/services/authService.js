@@ -52,6 +52,7 @@ const registerCompany = async (data) => {
                 email,
                 companyImage: companyImage || null,
                 passwordHash: hashedPassword,
+                status: 'PENDING',
                 ownerFullname: ownerFullname,
                 ownerEmail: ownerEmail,
                 ownerPhone: ownerPhone
@@ -66,7 +67,8 @@ const registerCompany = async (data) => {
                 fullName: ownerFullname,
                 email: ownerEmail,
                 passwordHash: hashedPassword,
-                role: "SUPER_ADMIN"
+                role: "SUPER_ADMIN",
+                status: 'PENDING'
             }
         })
 
@@ -140,7 +142,7 @@ const login = async (data) => {
         token,
         staff: {
             id: staff.id,
-            name: staff.fullName,
+            fullName: staff.fullName,
             email: staff.email,
             role: staff.role,
             status: staff.status,
