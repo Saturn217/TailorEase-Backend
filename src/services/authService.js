@@ -20,13 +20,23 @@ const registerCompany = async (data) => {
     if (!companyName || !email || !password || !companyImage || !ownerFullname || !ownerEmail || !ownerPhone) {
         throw new Error('All fields are required')
     }
+
     const existingCompany = await prisma.company.findUnique({
         where: { email }
     })
 
     if (existingCompany) {
-        throw new Error('Email already exists')
+        throw new Error('Company Email already exists')
     }
+
+    const existingStaff = await prisma.staff.findUnique({
+        where: { email: ownerEmail }
+    })
+
+    if (existingStaff) {
+        throw new Error('Owner email already exists')
+    }
+
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -69,6 +79,11 @@ const registerCompany = async (data) => {
         companyCode: result.company.companyCode,
         companyName: result.company.companyName,
         email: result.company.email,
+        owner: {
+            fullName: result.staff.fullName,
+            email: result.staff.email,
+            role: result.staff.role
+        }
     }
 
 }

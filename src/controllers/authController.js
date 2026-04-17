@@ -9,7 +9,7 @@ const registerCompany = async (req, res) => {
     }
     catch (error) {
 
-        if (error.message === 'All fields are required' || error.message === 'Email already exists') {
+        if (error.message === 'All fields are required' || error.message === 'Company Email already exists' || error.message === 'Owner email already exists') {
             return res.status(400).json({ error: error.message });
         }
         res.status(400).json({ message: "server error", error: error.message });
