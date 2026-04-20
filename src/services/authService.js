@@ -46,7 +46,6 @@ const registerCompany = async (data) => {
     const result = await prisma.$transaction(async (tx) => {
         const company = await tx.company.create({
             data: {
-
                 companyCode,
                 companyName,
                 email,
@@ -80,6 +79,7 @@ const registerCompany = async (data) => {
         message: "Company registered successfully",
         companyCode: result.company.companyCode,
         companyName: result.company.companyName,
+        id: result.company.id,
         email: result.company.email,
         owner: {
             fullName: result.staff.fullName,

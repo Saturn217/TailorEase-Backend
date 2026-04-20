@@ -5,6 +5,7 @@ const prisma = require("../utils/prisma");
 const AppError = require('../utils/AppError');
 
 
+
 const getAllCompanies = async (status, page, limit) => {
     const currentPage = parseInt(page) || 1
     const pageSize = parseInt(limit) || 10
@@ -66,7 +67,7 @@ const getAllCompanies = async (status, page, limit) => {
 
 const updateCompanyStatus = async (companyId, status) => {
 
-    const validStatuses = ['PENDING', 'APPROVED', 'REJECTED']
+    const validStatuses = ['APPROVED', 'REJECTED', 'SUSPENDED']
 
     if (!validStatuses.includes(status)) {
         throw new AppError('Invalid status value', 400)
@@ -80,11 +81,15 @@ const updateCompanyStatus = async (companyId, status) => {
         throw new AppError('Company not found', 404)
     }
 
+    if (company.status === status) {
+        throw new AppError(`Company is already ${status.toLowerCase()}`, 400)
+    }
+
     if (status === 'APPROVED') {
         await prisma.$transaction(async (tx) => {
             await tx.company.update({
                 where: { id: companyId },
-                data: { status: 'APPROVED' }
+                data: { status }
             })
 
 
@@ -94,10 +99,28 @@ const updateCompanyStatus = async (companyId, status) => {
 
             })
         })
+
         return { message: 'Company approved successfully' }
 
     }
 
+
+
+    await prisma.$transaction(async (tx) => {
+        await tx.company.update({
+            where: { id: companyId },
+            data: { status }
+        })
+
+        await tx.staff.updateMany({
+            where: { companyId: companyId },
+            data: { status: "SUSPENDED" }
+        })
+
+    })
+    return {
+        message: `Company ${status.toLowerCase()} successfully`
+    }
 
 }
 
