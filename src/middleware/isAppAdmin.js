@@ -5,9 +5,12 @@ const jwt = require('jsonwebtoken')
 
 const isAppAdmin = (req, res, next) => {
 
-    const authHeader = req.headers.authorization
 
-    if (!authHeader || !authHeader.startsWith("Bearer")) {
+    const authHeader = req.headers.authorization
+    // console.log('authHeader:', authHeader)
+   
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         return res.status(401).json({ message: 'Unauthorized' })
     }
 
@@ -16,6 +19,7 @@ const isAppAdmin = (req, res, next) => {
     try {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET)
+        //  console.log('decoded:', decoded)
 
         if (!decoded.isAppAdmin) {
             return res.status(403).json({ message: 'Access denied, platform admin only' })
@@ -30,4 +34,4 @@ const isAppAdmin = (req, res, next) => {
     }
 }
 
-module.exports =  isAppAdmin 
+module.exports = isAppAdmin 

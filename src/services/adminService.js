@@ -124,4 +124,4 @@ const updateCompanyStatus = async (companyId, status) => {
 
 }
 
-module.exports = { getAllCompanies }
+module.exports = { getAllCompanies , updateCompanyStatus }

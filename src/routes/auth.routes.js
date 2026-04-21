@@ -10,12 +10,12 @@ router.post("/staff/register", authController.registerStaff)
 router.post("/login", authController.login)
 
 
-router.get('/me', aunthenticateToken, (req, res) => {
-    res.json({
-        message: 'You are logged in',
-        user: req.user
-    })
-})
+// router.get('/me', aunthenticateToken, (req, res) => {
+//     res.json({
+//         message: 'You are logged in',
+//         user: req.user
+//     })
+// })
 
 
 
