@@ -19,12 +19,9 @@ const getAllCompanies = async (req, res) => {
 
 
 const updateCompanyStatus = async (req, res) => {
-
     try {
         const { companyId } = req.params
         const { status } = req.body
-       
-
         const result = await adminService.updateCompanyStatus(companyId, status)
         res.status(200).json(result)
     }

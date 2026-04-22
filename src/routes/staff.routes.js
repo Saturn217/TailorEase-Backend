@@ -4,9 +4,9 @@ const router = require('express').Router()
 
 
 
-router.get("/:companyId", aunthenticateToken ,requireRole("SUPER_ADMIN"), staffController.getAllStaff)
+router.get("/", aunthenticateToken ,requireRole("SUPER_ADMIN"), staffController.getAllStaff)
 
-router.patch("/:companyId/:staffId/status", aunthenticateToken, requireRole("SUPER_ADMIN"), staffController.updateStaffStatus)
+router.patch("/:staffId/status", aunthenticateToken, requireRole("SUPER_ADMIN"), staffController.updateStaffStatus)
 
 
 
