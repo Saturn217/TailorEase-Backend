@@ -19,6 +19,9 @@ app.use("/api/v1/staff", staffRoutes);
 const customerRoutes = require('./routes/customer.routes');
 app.use("/api/v1/customers", customerRoutes);
 
+const templateRoutes = require("./routes/template.routes")
+app.use("/api/v1/templates", templateRoutes )
+
 
 app.get('/', (req, res) => {
     res.send({
