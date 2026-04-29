@@ -47,6 +47,9 @@ const getAllStaff = async (companyId, status, page, limit) => {
             totalCount,
             totalPages: Math.ceil(totalCount / pageSize),
             currentPage,
+            pageSize,
+            hasNextPage: currentPage < Math.ceil(totalCount / pageSize),
+            hasPrevPage: currentPage > 1
         }
     }
 

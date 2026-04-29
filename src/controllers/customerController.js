@@ -17,7 +17,7 @@ const createCustomer = async (req, res) =>{
 const getAllCustomers = async (req, res) => {
     try {
         const { companyId } = req.user
-        const { status, page, limit } = req.query
+        const {page, limit } = req.query
         const result = await customerService.getAllCustomers(companyId, page, limit)
         res.status(200).json(result)
     } catch (error) {
