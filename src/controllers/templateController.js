@@ -3,7 +3,7 @@ const AppError = require("../utils/AppError")
 
 
 const createTemplate = async (req, res) => {
-      
+
     try {
         const { companyId } = req.user
         const { name, fieldDefinitions } = req.body
@@ -20,8 +20,8 @@ const createTemplate = async (req, res) => {
 
 const getAllTemplates = async (req, res) => {
     try {
-        const {companyId} = req.user
-        const {page, limit} = req.query
+        const { companyId } = req.user
+        const { page, limit } = req.query
 
         const result = await templateService.getAllTemplates(companyId, page, limit)
         res.status(201).json(result)
@@ -33,11 +33,11 @@ const getAllTemplates = async (req, res) => {
     }
 }
 
-const updateTemplate = async (req, res) =>{
+const updateTemplate = async (req, res) => {
     try {
-        const {companyId} = req.user
-        const {templateId} = req.params
-        const {newTemplateName, fields, deleteFieldId} = req.body
+        const { companyId } = req.user
+        const { templateId } = req.params
+        const { newTemplateName, fields, deleteFieldId } = req.body
 
         const result = await templateService.updateTemplate(companyId, templateId, req.body)
         res.status(200).json(result)
@@ -47,7 +47,22 @@ const updateTemplate = async (req, res) =>{
         res.status(statusCode).json({
             message: error.message
         })
-        
+
+    }
+}
+
+const deleteTemplate = async (req, res) => {
+    try {
+        const { companyId } = req.user
+        const { templateId } = req.params
+
+        const result = await templateService.deleteTemplate(companyId, templateId)
+        res.status(200).json(result)
+    } catch (error) {
+        const statusCode = error.statusCode || 500
+        res.status(statusCode).json({
+            message: error.message
+        })
     }
 }
 
@@ -58,4 +73,4 @@ const updateTemplate = async (req, res) =>{
 
 
 
-module.exports = {createTemplate, getAllTemplates, updateTemplate}
+module.exports = { createTemplate, getAllTemplates, updateTemplate, deleteTemplate }

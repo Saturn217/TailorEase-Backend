@@ -211,7 +211,7 @@ const updateTemplate = async (companyId, templateId, data) => {
     let updatedField = template.fieldDefinitions
     if (deleteFieldId) {
         const fieldExist = template.fieldDefinitions.find(field => field.fieldId === deleteFieldId)
-      
+
 
         if (!fieldExist) {
             throw new AppError("FieldId does not exist", 404)
@@ -228,7 +228,7 @@ const updateTemplate = async (companyId, templateId, data) => {
         updatedField = template.fieldDefinitions.filter(field => field.fieldId !== deleteFieldId)
 
 
-       
+
     }
 
 
@@ -282,6 +282,39 @@ const updateTemplate = async (companyId, templateId, data) => {
 
 }
 
+const deleteTemplate = async (companyId, templateId) => {
+
+    const template = await prisma.measurementTemplate.findFirst({
+        where: { id: templateId, companyId },
+        select: {
+            _count: {
+                select: {
+                    measurements: true
+                }
+            }
+        }
+
+    })
+
+    if (!template) {
+        throw new AppError("Template not found", 404)
+    }
+
+    if (template._count.measurements > 0) {
+        throw new AppError("Template has saved measurements and cannot be deleted", 400)
+    }
+    await prisma.measurementTemplate.delete({
+        where: {
+            id: templateId
+        }
+    })
+
+    return {
+        message: "Template deleted successfully"
+
+    }
+
+}
 
 
 
@@ -291,4 +324,5 @@ const updateTemplate = async (companyId, templateId, data) => {
 
 
 
-module.exports = { createTemplate, getAllTemplates, updateTemplate }
+
+module.exports = { createTemplate, getAllTemplates, updateTemplate, deleteTemplate }
