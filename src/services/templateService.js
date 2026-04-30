@@ -211,6 +211,7 @@ const updateTemplate = async (companyId, templateId, data) => {
     let updatedField = template.fieldDefinitions
     if (deleteFieldId) {
         const fieldExist = template.fieldDefinitions.find(field => field.fieldId === deleteFieldId)
+      
 
         if (!fieldExist) {
             throw new AppError("FieldId does not exist", 404)
@@ -222,9 +223,12 @@ const updateTemplate = async (companyId, templateId, data) => {
                 `Field "${fieldExist.measurementName}" has saved measurements and cannot be removed`,
                 400
             )
-        } 
+        }
 
         updatedField = template.fieldDefinitions.filter(field => field.fieldId !== deleteFieldId)
+
+
+       
     }
 
 
@@ -238,18 +242,20 @@ const updateTemplate = async (companyId, templateId, data) => {
             measurementName: field.measurementName.trim(),
             unit: field.unit
         }))
+
+        const existingFieldIds = updatedField.map(f => f.fieldId)
+
+        updatedField = updatedField.map(existing => {
+            const update = processNewFields.find(f => f.fieldId === existing.fieldId)
+            return update || existing
+        })
+
+        const newFields = processNewFields.filter(f => !existingFieldIds.includes(f.fieldId))
+
+        updatedField = [...updatedField, ...newFields]
     }
 
-    const existingFieldIds = updatedField.map(f=> f.fieldId)  
 
-    updatedField = updatedField.map(existing =>{
-        const update = processNewFields.find(f=>f.fieldId === existing.fieldId)
-        return update || existing
-    })
-
-    const newFields = processNewFields.filter(f => !existingFieldIds.includes(f.fieldId))
-
-    updatedField = [...updatedField,  ...newFields]
 
     const updatedTemplate = await prisma.measurementTemplate.update({
         where: { id: templateId },

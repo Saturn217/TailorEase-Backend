@@ -37,7 +37,7 @@ const updateTemplate = async (req, res) =>{
     try {
         const {companyId} = req.user
         const {templateId} = req.params
-        const {newTemplate, fields, deleteFieldId} = req.body
+        const {newTemplateName, fields, deleteFieldId} = req.body
 
         const result = await templateService.updateTemplate(companyId, templateId, req.body)
         res.status(200).json(result)
