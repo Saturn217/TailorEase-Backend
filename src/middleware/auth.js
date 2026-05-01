@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const AppError = require('../utils/AppError');
 
 
-const aunthenticateToken = (req, res, next) => {
+const authenticateToken = (req, res, next) => {
 
     const authheader = req.headers.authorization
 
@@ -35,4 +35,4 @@ const requireRole = (role) => {
         
 }
 
-module.exports = { aunthenticateToken, requireRole }
+module.exports = { authenticateToken, requireRole }

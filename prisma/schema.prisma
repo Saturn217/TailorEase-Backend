@@ -37,6 +37,7 @@ model Staff {
   createdAt        DateTime        @default(now())
   company          Company         @relation(fields: [companyId], references: [id])
   customersCreated Customer[]
+  measurementsCreated Measurement[]
   orders           Order[]
   statusHistory    StatusHistory[]
 }
@@ -63,12 +64,15 @@ model MeasurementTemplate {
   createdAt        DateTime      @default(now())
   company          Company       @relation(fields: [companyId], references: [id])
   measurements     Measurement[]
+  
 }
 
 model Measurement {
   id         String              @id @default(uuid())
   customerId String
   templateId String
+  unit       String              @default("cm")
+  createdBy  String              
   values     Json
   snapshot   Json
   notes      String?
@@ -76,6 +80,7 @@ model Measurement {
   updatedAt  DateTime            @updatedAt
   customer   Customer            @relation(fields: [customerId], references: [id])
   template   MeasurementTemplate @relation(fields: [templateId], references: [id])
+  createdByStaff Staff           @relation(fields: [createdBy], references: [id])
 }
 
 model Order {

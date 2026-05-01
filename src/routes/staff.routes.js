@@ -1,12 +1,12 @@
 const staffController = require('../controllers/staffController')
-const { requireRole, aunthenticateToken } = require('../middleware/auth') 
+const { requireRole, authenticateToken } = require('../middleware/auth') 
 const router = require('express').Router()
 
 
 
-router.get("/", aunthenticateToken ,requireRole("SUPER_ADMIN"), staffController.getAllStaff)
+router.get("/", authenticateToken ,requireRole("SUPER_ADMIN"), staffController.getAllStaff)
 
-router.patch("/:staffId/status", aunthenticateToken, requireRole("SUPER_ADMIN"), staffController.updateStaffStatus)
+router.patch("/:staffId/status", authenticateToken, requireRole("SUPER_ADMIN"), staffController.updateStaffStatus)
 
 
 

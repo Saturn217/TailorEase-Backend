@@ -22,6 +22,9 @@ app.use("/api/v1/customers", customerRoutes);
 const templateRoutes = require("./routes/template.routes")
 app.use("/api/v1/templates", templateRoutes )
 
+// const measurementRoutes = require("./routes/measurement.routes")
+// app.use("/api/vi/measurements", measurementRoutes)
+
 
 app.get('/', (req, res) => {
     res.send({

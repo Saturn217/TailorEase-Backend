@@ -1,15 +1,19 @@
 const express = require('express')
- const router = express.Router()
+const router = express.Router()
 const customerController = require('../controllers/customerController')
-const { aunthenticateToken, requireRole } = require('../middleware/auth')
+const measurementController = require("../controllers/measurementController")
+const { authenticateToken, requireRole } = require('../middleware/auth')
 
 
-router.post("/register", aunthenticateToken, customerController.createCustomer)
+router.post("/register", authenticateToken, customerController.createCustomer)
 
-router.get("/", aunthenticateToken, customerController.getAllCustomers)
+router.get("/", authenticateToken, customerController.getAllCustomers)
 
-router.get("/:customerId", aunthenticateToken, customerController.getCustomerById)
+router.get("/:customerId", authenticateToken, customerController.getCustomerById)
+
+
+router.post("/:customerId/measurements", authenticateToken, measurementController.createMeasurement)
 
 
 
- module.exports = router
+module.exports = router
