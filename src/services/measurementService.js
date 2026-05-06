@@ -2,7 +2,7 @@ const prisma = require("../utils/prisma")
 const AppError = require("../utils/AppError")
 
 const createMeasurement = async (companyId, staffId, customerId, data) => {
-    const { templateId, values, notes } = data
+    const { templateId, values, notes, unit } = data
 
     if (!templateId || !values) {
         throw new AppError("Template and values are required", 400)
@@ -29,12 +29,43 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
     }
 
     const template = await prisma.measurementTemplate.findFirst({
-        where: { id: templateId, companyId }
+        where: { id: templateId, companyId },
+
     })
 
     if (!template) {
         throw new AppError("Template not found", 404)
     }
+
+    const validFieldIds = template.fieldDefinitions.map(f => f.fieldId)
+    const invalidKeys = Object.keys(values).filter(key => !validFieldIds.includes(key))   // return values that are not included in the fild id
+
+    if (invalidKeys.length > 0) {
+        throw new AppError(`Invalid field keys: ${invalidKeys.join(', ')}. Use fieldId as key`,
+            400)
+    }
+
+    const nonNumberValues = Object.entries(values).filter(([key, value]) => value !== null && typeof value !== "number")
+    if (nonNumberValues.length > 0) {
+        const invalidFields = nonNumberValues.map(([key]) => key).join(", ")
+        throw new AppError(
+            `Values must be numbers. Invalid fields: ${invalidFields}`,
+            400
+        )
+
+    }
+
+    const negativeValues = Object.entries(values).filter(([key, value]) => value !== null && value <= 0)
+
+    if (negativeValues.length > 0) {
+        const invalidValue = negativeValues.map(([key]) => key).join(", ")
+        throw new AppError(
+            `Values must be positive numbers. Invalid fields: ${invalidValue}`,
+            400
+        )
+
+    }
+
 
     const snapshot = template.fieldDefinitions
 
@@ -44,6 +75,7 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
             templateId,
             values,
             snapshot,
+            unit: unit || "cm",
             notes: notes || null,
             createdBy: staffId,
 
@@ -56,6 +88,17 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
                     fullName: true,
                     email: true,
                 }
+            },
+            template:{
+                select:{
+                    name: true
+                }
+            },
+            customer:{
+                select:{
+                    fullName: true,
+                    email: true
+                }
             }
 
         }
@@ -64,10 +107,13 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
     return {
         message: "Measurement created successfully",
         measurement: {
+            id: measurement.id,
             customerId: measurement.customerId,
             templateId: measurement.templateId,
+            templateName: measurement.template.name,
             values: measurement.values,
             snapshot: measurement.snapshot,
+            unit: measurement.unit,
             notes: measurement.notes,
             createdAt: measurement.createdAt,
             updatedAt: measurement.updatedAt,
@@ -75,6 +121,10 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
                 id: measurement.createdByStaff.id,
                 fullName: measurement.createdByStaff.fullName,
                 email: measurement.createdByStaff.email
+            },
+            customer: {
+                fullName: measurement.customer.fullName,
+                email: measurement.customer.email
             }
         }
 
