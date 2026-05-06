@@ -89,13 +89,13 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
                     email: true,
                 }
             },
-            template:{
-                select:{
+            template: {
+                select: {
                     name: true
                 }
             },
-            customer:{
-                select:{
+            customer: {
+                select: {
                     fullName: true,
                     email: true
                 }
@@ -133,6 +133,178 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
 }
 
 
+const getCustomerMeasurements = async (companyId, customerId, page, limit) => {
+    const currentPage = parseInt(page) || 1
+    const pageSize = parseInt(limit) || 10
+    const skip = (currentPage - 1) * pageSize
+
+    const customer = await prisma.customer.findFirst({
+        where: { id: customerId, companyId }
+    })
+
+    if (!customer) {
+        throw new AppError("Customer not found", 404)
+    }
+
+    const [measurement, totalCount] = await Promise.all([
+        prisma.measurement.findMany({
+            where: { customerId, customer: { companyId } },
+            select: {
+                id: true,
+                customerId: true,
+                templateId: true,
+                values: true,
+                snapshot: true,
+                unit: true,
+                notes: true,
+                createdAt: true,
+                updatedAt: true,
+                customer: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true
+                    }
+                },
+                template: {
+                    select: {
+                        name: true
+                    }
+                },
+                createdByStaff: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true
+
+                    }
+                },
+                updatedByStaff: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true
+
+                    }
+                }
+
+
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: pageSize,
+
+        }),
+        prisma.measurement.count({
+            where: {
+                customerId, customer: { companyId }
+
+            }
+        })
+    ])
+
+    if (measurement.length === 0) {
+        throw new AppError("There are no measurement found", 404)
+    }
+
+    return {
+        message: "Measurements retrieved successfully",
+        measurement,
+        pagination: {
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+            currentPage,
+            pageSize,
+            hasNextPage: currentPage < Math.ceil(totalCount / pageSize),
+            hasPrevPage: currentPage > 1
+        }
+
+    }
+
+
+}
+
+
+
+const getCompanyMeasurements = async (companyId, page, limit) => {
+    const currentPage = parseInt(page) || 1
+    const pageSize = parseInt(limit) || 10
+    const skip = (currentPage - 1) * pageSize
+
+    const [measurement, totalCount] = await Promise.all([
+        prisma.measurement.findMany({
+            where: { customer: { companyId } },
+            select: {
+                id: true,
+                customerId: true,
+                templateId: true,
+                values: true,
+                snapshot: true,
+                unit: true,
+                notes: true,
+                createdAt: true,
+                updatedAt: true,
+                customer: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true
+                    }
+                },
+                template: {
+                    select: {
+                        name: true
+                    }
+                },
+                createdByStaff: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true
+
+                    }
+                },
+                updatedByStaff: {
+                    select: {
+                        id: true,
+                        fullName: true,
+                        email: true
+
+                    }
+                }
+
+
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: pageSize,
+
+        }),
+        prisma.measurement.count({
+            where: { customer: { companyId } },
+        })
+    ])
+
+    if (measurement.length === 0) {
+        throw new AppError("There are no measurement found", 404)
+    }
+
+    return {
+        message: "Measurements retrieved successfully",
+        measurement,
+        pagination: {
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+            currentPage,
+            pageSize,
+            hasNextPage: currentPage < Math.ceil(totalCount / pageSize),
+            hasPrevPage: currentPage > 1
+        }
+
+    }
+
+
+}
 
 
 
@@ -141,5 +313,4 @@ const createMeasurement = async (companyId, staffId, customerId, data) => {
 
 
 
-
-module.exports = { createMeasurement }
+module.exports = { createMeasurement, getCustomerMeasurements, getCompanyMeasurements }

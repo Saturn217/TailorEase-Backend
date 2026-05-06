@@ -1,9 +1,8 @@
 const express = require('express')
-const { authenticateToken } = require('../middleware/auth')
+const { authenticateToken, requireRole } = require('../middleware/auth')
 const measurementController = require("../controllers/measurementController")
-
 const router = express.Router()
 
-router.post("/customers/:customerId/measurement", authenticateToken, measurementController.createMeasurement )
+router.get("/", authenticateToken, requireRole("SUPER_ADMIN"), measurementController.getCompanyMeasurements )
 
 module.exports = router

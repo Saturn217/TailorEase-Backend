@@ -14,6 +14,9 @@ router.get("/:customerId", authenticateToken, customerController.getCustomerById
 
 router.post("/:customerId/measurements", authenticateToken, measurementController.createMeasurement)
 
+router.get("/:customerId/measurements", authenticateToken, measurementController.getCustomerMeasurements)
+
+router.get("/measurements", authenticateToken, requireRole("SUPER_ADMIN"), measurementController.getCompanyMeasurements)
 
 
 module.exports = router

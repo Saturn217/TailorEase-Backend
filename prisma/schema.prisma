@@ -38,6 +38,7 @@ model Staff {
   company          Company         @relation(fields: [companyId], references: [id])
   customersCreated Customer[]
   measurementsCreated Measurement[]
+  measurementsUpdated Measurement[] @relation("MeasurementUpdatedBy")
   orders           Order[]
   statusHistory    StatusHistory[]
 }
@@ -72,7 +73,8 @@ model Measurement {
   customerId String
   templateId String
   unit       String              @default("cm")
-  createdBy  String              
+  createdBy  String 
+  updatedBy  String?              
   values     Json
   snapshot   Json
   notes      String?
@@ -81,6 +83,8 @@ model Measurement {
   customer   Customer            @relation(fields: [customerId], references: [id])
   template   MeasurementTemplate @relation(fields: [templateId], references: [id])
   createdByStaff Staff           @relation(fields: [createdBy], references: [id])
+  updatedByStaff Staff?              @relation("MeasurementUpdatedBy", fields: [updatedBy], references: [id])
+
 }
 
 model Order {
