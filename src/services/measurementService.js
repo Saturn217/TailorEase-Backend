@@ -303,6 +303,68 @@ const getCompanyMeasurements = async (companyId, page, limit) => {
 
     }
 
+}
+
+const updateMeasurement = async (companyId, customerId, measurementId, staffId, data) => {
+    const { values } = data
+
+    if (!values) {
+        throw new AppError("Values is required", 400)
+    }
+    if (typeof values !== "object" || Array.isArray(values)) {
+        throw new AppError('Values must be an object', 400)
+
+    }
+
+    const customer = await prisma.customer.findFirst({
+        where: { id: customerId, customer: { companyId } }
+    })
+    if (!customer) {
+        throw new AppError("Customer not found", 404)
+    }
+
+    const measurement = await prisma.measurement.findFirst({
+        where: { id: measurementId, customer: { measurementId } }
+    })
+    if (!measurement) {
+        throw new AppError("Measurement not found for this customer", 404)
+    }
+
+
+    const template = await prisma.measurementTemplate
+    const validFieldIds = template.templateDefinitions.map(f => f.fieldId)
+
+    const invalidKeys = Object.keys(values).filter(key => !validFieldIds.includes(key))
+    if (invalidKeys.length > 0) {
+        throw new AppError(`Invalid field keys: ${invalidKeys.join(', ')}. Use fieldId as key`,
+            400)
+    }
+
+    const nonNumberValues = Object.entries(values).filter(([key, value]) => value !== null && typeof value !== "number")
+    if (nonNumberValues.length > 0) {
+        const invalidFields = nonNumberValues.map(([key]) => key).join(", ")
+        throw new AppError(
+            `Values must be numbers. Invalid fields: ${invalidFields}`,
+            400
+        )
+    }
+
+    const negativeValues = Object.entries(values).filter(([key, value]) => value !== null && value <= 0)
+
+    if (negativeValues.length > 0) {
+        const invalidValue = negativeValues.map(([key]) => key).join(", ")
+        throw new AppError(
+            `Values must be positive numbers. Invalid fields: ${invalidValue}`,
+            400
+        )
+
+    }
+
+    const existingValues = measurement.values.map((key, value) => existing )
+
+
+
+
 
 }
 
