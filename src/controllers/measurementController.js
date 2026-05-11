@@ -53,5 +53,22 @@ const getCompanyMeasurements = async (req, res) => {
     }
 }
 
+const updateMeasurement = async (req, res) => {
+    try {
+        const {companyId, staffId} = req.user
+        const {customerId, measurementId} = req.params
+    
+        const result = await measurementService.updateMeasurement(companyId, staffId, customerId, measurementId, req.body) 
+        res.status(200).json(result)
 
-module.exports = { createMeasurement, getCustomerMeasurements, getCompanyMeasurements }
+
+    } catch (error) {
+        const statusCode = error.statusCode || 500
+        res.status(statusCode).json({
+            message: error.message
+        })
+    }
+}
+
+
+module.exports = { createMeasurement, getCustomerMeasurements, getCompanyMeasurements, updateMeasurement }

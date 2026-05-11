@@ -16,7 +16,12 @@ router.post("/:customerId/measurements", authenticateToken, measurementControlle
 
 router.get("/:customerId/measurements", authenticateToken, measurementController.getCustomerMeasurements)
 
-router.get("/measurements", authenticateToken, requireRole("SUPER_ADMIN"), measurementController.getCompanyMeasurements)
+// router.patch("/:customerId/measurements/:measurementId", authenticateToken, measurementController.updateMeasurement)
+router.patch("/:customerId/measurements/:measurementId", authenticateToken, (req, res, next) => {
+  console.log('Route hit')
+  console.log('params:', req.params)
+  next()
+}, measurementController.updateMeasurement)
 
 
 module.exports = router

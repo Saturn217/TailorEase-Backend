@@ -305,8 +305,14 @@ const getCompanyMeasurements = async (companyId, page, limit) => {
 
 }
 
-const updateMeasurement = async (companyId, customerId, measurementId, staffId, data) => {
+const updateMeasurement = async (companyId, staffId, customerId, measurementId, data) => {
+
+    console.log('companyId:', companyId)
+    console.log('staffId:', staffId)
+    console.log('customerId:', customerId)
+    console.log('measurementId:', measurementId)
     const { values } = data
+
 
     if (!values) {
         throw new AppError("Values is required", 400)
@@ -317,22 +323,42 @@ const updateMeasurement = async (companyId, customerId, measurementId, staffId, 
     }
 
     const customer = await prisma.customer.findFirst({
-        where: { id: customerId, customer: { companyId } }
+        where: { id: customerId, companyId }
     })
+
+
+
     if (!customer) {
         throw new AppError("Customer not found", 404)
     }
 
     const measurement = await prisma.measurement.findFirst({
-        where: { id: measurementId, customer: { measurementId } }
+        where: { id: measurementId }
     })
+
+    console.log('measurementId type:', typeof measurementId)
+console.log('measurementId length:', measurementId.length)
+console.log('measurementId chars:', [...measurementId].map(c => c.charCodeAt(0)))
+
+    console.log("measurement found", measurement)
+
+    const allMeasurements = await prisma.measurement.findMany()
+    console.log('all measurements:', allMeasurements)
+
+
     if (!measurement) {
         throw new AppError("Measurement not found for this customer", 404)
     }
 
 
-    const template = await prisma.measurementTemplate
-    const validFieldIds = template.templateDefinitions.map(f => f.fieldId)
+    const template = await prisma.measurementTemplate.findFirst({
+        where: { id: measurement.templateId, companyId }
+    })
+
+    if (!template) {
+        throw new AppError('Template not found', 404)
+    }
+    const validFieldIds = template.fieldDefinitions.map(f => f.fieldId)
 
     const invalidKeys = Object.keys(values).filter(key => !validFieldIds.includes(key))
     if (invalidKeys.length > 0) {
@@ -360,7 +386,57 @@ const updateMeasurement = async (companyId, customerId, measurementId, staffId, 
 
     }
 
-    const existingValues = measurement.values.map((key, value) => existing )
+    const updatedValues = { ...measurement.values, ...values }
+
+    const updatedMeasurement = await prisma.measurement.update({
+        where: { id: measurementId },
+        data: { values: updatedValues, snapshot: template.fieldDefinitions, updatedBy: staffId },
+        include: {
+            updatedByStaff: {
+                select: {
+                    id: true,
+                    fullName: true,
+                    email: true
+                }
+            },
+            template: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            },
+            customer: {
+                select: {
+                    id: true,
+                    fullName: true
+                }
+            }
+        }
+
+    })
+
+    return {
+        message: "Measurement updated successfully",
+        measurement: {
+            id: updatedMeasurement.id,
+            customerId: updatedMeasurement.customerId,
+            customerName: updatedMeasurement.customer.fullName,
+            templateId: updatedMeasurement.templateId,
+            templateName: updatedMeasurement.template.name,
+            unit: updatedMeasurement.unit,
+            notes: updatedMeasurement.notes,
+            values: updatedMeasurement.values,
+            snapshot: updatedMeasurement.snapshot,
+            updatedAt: updatedMeasurement.updatedAt,
+            updatedBy: {
+                id: updatedMeasurement.updatedByStaff.id,
+                fullName: updatedMeasurement.updatedByStaff.fullName,
+                email: updatedMeasurement.updatedByStaff.email
+            }
+        }
+    }
+
+
 
 
 
@@ -375,4 +451,4 @@ const updateMeasurement = async (companyId, customerId, measurementId, staffId, 
 
 
 
-module.exports = { createMeasurement, getCustomerMeasurements, getCompanyMeasurements }
+module.exports = { createMeasurement, getCustomerMeasurements, getCompanyMeasurements, updateMeasurement }
