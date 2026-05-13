@@ -26,6 +26,10 @@ const measurementRoutes = require("./routes/measurement.routes")
 app.use("/api/v1/measurements", measurementRoutes)
 
 
+const orderRoutes = require("./routes/order.routes")
+app.use("/api/v1/orders", orderRoutes)
+
+
 app.get('/', (req, res) => {
     res.send({
         message: 'Welcome to TailorEase API'

@@ -96,7 +96,7 @@ model Order {
   title         String
   type          OrderType       @default(NEW)
   status        OrderStatus     @default(RECEIVED)
-  notes         String?
+  notes         Json
   createdAt     DateTime        @default(now())
   customer      Customer        @relation(fields: [customerId], references: [id])
   company       Company         @relation(fields: [companyId], references: [id])

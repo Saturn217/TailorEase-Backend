@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const customerController = require('../controllers/customerController')
 const measurementController = require("../controllers/measurementController")
+const orderController = require('../controllers/orderController')
 const { authenticateToken, requireRole } = require('../middleware/auth')
 
 
@@ -16,12 +17,13 @@ router.post("/:customerId/measurements", authenticateToken, measurementControlle
 
 router.get("/:customerId/measurements", authenticateToken, measurementController.getCustomerMeasurements)
 
-// router.patch("/:customerId/measurements/:measurementId", authenticateToken, measurementController.updateMeasurement)
-router.patch("/:customerId/measurements/:measurementId", authenticateToken, (req, res, next) => {
-  console.log('Route hit')
-  console.log('params:', req.params)
-  next()
-}, measurementController.updateMeasurement)
+
+router.patch("/:customerId/measurements/:measurementId", authenticateToken, measurementController.updateMeasurement)
+
+
+// orders
+
+router.post("/:customerId/orders", authenticateToken, orderController.createOrder)
 
 
 module.exports = router
