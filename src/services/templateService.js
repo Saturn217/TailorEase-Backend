@@ -209,6 +209,7 @@ const updateTemplate = async (companyId, templateId, data) => {
 
     }
     let updatedField = template.fieldDefinitions
+    
     if (deleteFieldId) {
         const fieldExist = template.fieldDefinitions.find(field => field.fieldId === deleteFieldId)
 

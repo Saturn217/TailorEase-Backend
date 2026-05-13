@@ -77,7 +77,7 @@ model Measurement {
   updatedBy  String?              
   values     Json
   snapshot   Json
-  notes      String?
+  notes      Json?
   createdAt  DateTime            @default(now())
   updatedAt  DateTime            @updatedAt
   customer   Customer            @relation(fields: [customerId], references: [id])

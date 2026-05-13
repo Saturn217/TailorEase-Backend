@@ -307,21 +307,17 @@ const getCompanyMeasurements = async (companyId, page, limit) => {
 
 const updateMeasurement = async (companyId, staffId, customerId, measurementId, data) => {
 
-    console.log('companyId:', companyId)
-    console.log('staffId:', staffId)
-    console.log('customerId:', customerId)
-    console.log('measurementId:', measurementId)
-    const { values } = data
+    // console.log('companyId:', companyId)
+    // console.log('staffId:', staffId)
+    // console.log('customerId:', customerId)
+    // console.log('measurementId:', measurementId)
+    const { values, note } = data
 
 
-    if (!values) {
-        throw new AppError("Values is required", 400)
+    if (!values && !note) {
+        throw new AppError("Values or note are required", 400)
     }
-    if (typeof values !== "object" || Array.isArray(values)) {
-        throw new AppError('Values must be an object', 400)
-
-    }
-
+   
     const customer = await prisma.customer.findFirst({
         where: { id: customerId, companyId }
     })
@@ -336,16 +332,6 @@ const updateMeasurement = async (companyId, staffId, customerId, measurementId, 
         where: { id: measurementId }
     })
 
-    console.log('measurementId type:', typeof measurementId)
-console.log('measurementId length:', measurementId.length)
-console.log('measurementId chars:', [...measurementId].map(c => c.charCodeAt(0)))
-
-    console.log("measurement found", measurement)
-
-    const allMeasurements = await prisma.measurement.findMany()
-    console.log('all measurements:', allMeasurements)
-
-
     if (!measurement) {
         throw new AppError("Measurement not found for this customer", 404)
     }
@@ -358,39 +344,69 @@ console.log('measurementId chars:', [...measurementId].map(c => c.charCodeAt(0))
     if (!template) {
         throw new AppError('Template not found', 404)
     }
-    const validFieldIds = template.fieldDefinitions.map(f => f.fieldId)
 
-    const invalidKeys = Object.keys(values).filter(key => !validFieldIds.includes(key))
-    if (invalidKeys.length > 0) {
-        throw new AppError(`Invalid field keys: ${invalidKeys.join(', ')}. Use fieldId as key`,
-            400)
+
+
+    if (values) {
+
+        if (typeof values !== "object" || Array.isArray(values))
+            throw new AppError('Values must be an object', 400)
+
+        const validFieldIds = template.fieldDefinitions.map(f => f.fieldId)
+        const invalidKeys = Object.keys(values).filter(key => !validFieldIds.includes(key))
+        if (invalidKeys.length > 0) {
+            throw new AppError(`Invalid field keys: ${invalidKeys.join(', ')}. Use fieldId as key`,
+                400)
+        }
+
+        const nonNumberValues = Object.entries(values).filter(([key, value]) => value !== null && typeof value !== "number")
+        if (nonNumberValues.length > 0) {
+            const invalidFields = nonNumberValues.map(([key]) => key).join(", ")
+            throw new AppError(
+                `Values must be numbers. Invalid fields: ${invalidFields}`,
+                400
+            )
+        }
+
+        const negativeValues = Object.entries(values).filter(([key, value]) => value !== null && value <= 0)
+
+        if (negativeValues.length > 0) {
+            const invalidValue = negativeValues.map(([key]) => key).join(", ")
+            throw new AppError(
+                `Values must be positive numbers. Invalid fields: ${invalidValue}`,
+                400
+            )
+
+        }
+
     }
 
-    const nonNumberValues = Object.entries(values).filter(([key, value]) => value !== null && typeof value !== "number")
-    if (nonNumberValues.length > 0) {
-        const invalidFields = nonNumberValues.map(([key]) => key).join(", ")
-        throw new AppError(
-            `Values must be numbers. Invalid fields: ${invalidFields}`,
-            400
-        )
+
+    let updatedValues = values ? { ...measurement.values, ...values } : measurement.values
+
+    const staff = await prisma.staff.findUnique({
+        where: { id: staffId },
+        select: { fullName: true }
+    })
+
+    let updatedNotes = Array.isArray(measurement.notes) ? measurement.notes : []
+    if (note) {
+
+        const newNote = {
+            note,
+            addedBy: staffId,
+            addedByName: staff.fullName,
+            addedAt: new Date().toISOString()
+        }
+
+        updatedNotes = [...updatedNotes, newNote]
     }
 
-    const negativeValues = Object.entries(values).filter(([key, value]) => value !== null && value <= 0)
 
-    if (negativeValues.length > 0) {
-        const invalidValue = negativeValues.map(([key]) => key).join(", ")
-        throw new AppError(
-            `Values must be positive numbers. Invalid fields: ${invalidValue}`,
-            400
-        )
-
-    }
-
-    const updatedValues = { ...measurement.values, ...values }
 
     const updatedMeasurement = await prisma.measurement.update({
         where: { id: measurementId },
-        data: { values: updatedValues, snapshot: template.fieldDefinitions, updatedBy: staffId },
+        data: { values: updatedValues, notes: updatedNotes, snapshot: template.fieldDefinitions, updatedBy: staffId },
         include: {
             updatedByStaff: {
                 select: {
@@ -405,6 +421,7 @@ console.log('measurementId chars:', [...measurementId].map(c => c.charCodeAt(0))
                     name: true
                 }
             },
+
             customer: {
                 select: {
                     id: true,
@@ -435,12 +452,6 @@ console.log('measurementId chars:', [...measurementId].map(c => c.charCodeAt(0))
             }
         }
     }
-
-
-
-
-
-
 
 }
 
