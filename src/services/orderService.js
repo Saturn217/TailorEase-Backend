@@ -20,7 +20,7 @@ const createOrder = async (companyId, staffId, customerId, data) => {
         throw new AppError('parentOrderId is required for amendment orders', 400)
     }
 
-    if(type ==="NEW" && parentOrderId) {
+    if (type === "NEW" && parentOrderId) {
         throw new AppError('parentOrderId should not be provided for new orders', 400)
     }
 
@@ -64,7 +64,7 @@ const createOrder = async (companyId, staffId, customerId, data) => {
             addedAt: new Date().toISOString()
         }
 
-        initialNotes = [...initialNotes, newNote ]
+        initialNotes = [...initialNotes, newNote]
 
     }
 
@@ -105,7 +105,70 @@ const createOrder = async (companyId, staffId, customerId, data) => {
 
 }
 
+const getCompanyOrders = async (companyId, customerId, type, status, page, limit) => {
+    const currentPage = parseInt(page) || 1
+    const pageSize = parseInt(limit) || 10
+    const skip = (currentPage - 1) * pageSize
 
-module.exports = { createOrder }
+    const [orders, totalCount] = await Promise.all([
+        prisma.order.findMany({
+            where: { companyId, ...(customerId ? { customerId } : {}), ...(type ? { type } : {}), ...(status ? { status } : {}) },
+            select: {
+                id: true,
+                title: true,
+                type: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+                staffId: true,
+                notes: true,
+                customerId: true,
+                customer: {
+                    select: {
+                        fullName: true
+                    }
+                },
+                staff: {
+                    select: {
+                        fullName: true
+                    }
+                },
+
+            },
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: pageSize
+        }),
+        prisma.order.count({
+            where: {
+                companyId, ...(customerId ? { customerId } : {}),
+                ...(type ? { type } : {}),
+                ...(status ? { status } : {})
+            }
+        })
+
+
+    ])
+
+    if (orders.length === 0) {
+        throw new AppError('No orders found', 404)
+    }
+
+
+    return {
+        message: 'Orders retrieved successfully',
+        orders,
+        pagination: {
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+            currentPage,
+            pageSize,
+            hasNextPage: currentPage < Math.ceil(totalCount / pageSize),
+            hasPrevPage: currentPage > 1
+        }
+    }
+
+
+    module.exports = { createOrder }
 
 
