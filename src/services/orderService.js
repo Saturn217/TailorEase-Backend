@@ -1,7 +1,8 @@
 const prisma = require("../utils/prisma");
 const AppError = require('../utils/AppError');
 const sendEmail = require("../utils/email")
-const { init } = require("../app");
+const { init, get } = require("../app");
+const { registerCompany } = require("../controllers/authController");
 
 
 
@@ -169,5 +170,83 @@ const getCompanyOrders = async (companyId, customerId, type, status, page, limit
     }
 
 }
-    module.exports = { createOrder, getCompanyOrders }
+
+
+const getCustomerOrders = async (companyId, customerId, type, status, page, limit) =>{
+    const currentPage = parseInt(page) || 1
+    const pageSize = parseInt(limit) || 10
+    const skip = (currentPage - 1) * pageSize
+
+    const customer = await prisma.customer.findFirst({
+        where:{id:customerId, companyId},
+            select:{fullName: true}
+
+    })
+
+    if(!customer){
+        throw new AppError("No customer found", 404)
+    }
+
+    const [order, totalCount] = await Promise.all([
+        prisma.order.findMany({
+            where:{companyId, customerId, ...(type?{type}:{}), ...(status?{status}:{})},
+            select:{
+                id: true,
+                customerId: true,
+                title: true,
+                type: true,
+                status: true,
+                createdAt: true,
+                updatedAt: true,
+                staffId: true,
+                notes: true,
+               
+                staff: {
+                    select: {
+                        fullName: true
+                    }
+                },
+                parentOrderId: true
+
+            },
+             orderBy: { createdAt: 'desc' },
+            skip,
+            take: pageSize
+
+
+        }),
+        prisma.order.count({
+            where:{companyId, customerId, ...(type?{type}:{}), ...(status?{status}:{})}
+        })
+    ])
+
+    if(order.length === 0){ 
+        throw new AppError("No orders found for this customer", 404)
+    }
+
+    return {
+        message: 'Orders retrieved successfully',
+        customerName: customer.fullName,
+        orders: order,
+        pagination: {
+            totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+            currentPage,
+            pageSize,
+            hasNextPage: currentPage < Math.ceil(totalCount / pageSize),
+            hasPrevPage: currentPage > 1
+        }
+    }
+
+
+
+
+
+}
+
+
+
+
+
+    module.exports = { createOrder, getCompanyOrders, getCustomerOrders }
 

@@ -24,6 +24,7 @@ router.patch("/:customerId/measurements/:measurementId", authenticateToken, meas
 // orders
 
 router.post("/:customerId/orders", authenticateToken, orderController.createOrder)
+router.get("/:customerId/orders", authenticateToken, orderController.getCustomerOrders)
 
 
 module.exports = router

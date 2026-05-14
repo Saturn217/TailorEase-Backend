@@ -37,5 +37,21 @@ const getCompanyOrders = async (req, res)=>{
     }
 }
 
+const getCustomerOrders = async (req, res)=>{
+    try {
+        const {companyId} = req.user
+        const {customerId} = req.params
+        const {type, status, page, limit} = req.query
+        const result = await orderService.getCustomerOrders(companyId, customerId, type, status, page, limit)
+        res.status(200).json(result)
+    } catch (error) {
+        const statusCode = error.statusCode || 500
+        res.status(statusCode).json({
+            message: error.message
+        })
 
-module.exports = { createOrder, getCompanyOrders}
+    }
+}
+
+
+module.exports = { createOrder, getCompanyOrders, getCustomerOrders}
