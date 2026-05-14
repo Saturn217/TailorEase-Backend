@@ -98,6 +98,7 @@ model Order {
   status        OrderStatus     @default(RECEIVED)
   notes         Json
   createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
   customer      Customer        @relation(fields: [customerId], references: [id])
   company       Company         @relation(fields: [companyId], references: [id])
   staff         Staff           @relation(fields: [staffId], references: [id])

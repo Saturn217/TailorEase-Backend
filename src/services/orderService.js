@@ -168,7 +168,6 @@ const getCompanyOrders = async (companyId, customerId, type, status, page, limit
         }
     }
 
-
-    module.exports = { createOrder }
-
+}
+    module.exports = { createOrder, getCompanyOrders }
 

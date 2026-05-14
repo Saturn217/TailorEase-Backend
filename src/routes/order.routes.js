@@ -1,9 +1,9 @@
 const express = require('express')
-const { authenticateToken } = require('../middleware/auth')
+const { authenticateToken, requireRole } = require('../middleware/auth')
 const orderController = require('../controllers/orderController')
 const router = express.Router()
 
-router.post("/", authenticateToken, orderController.createOrder)
+router.get("/", authenticateToken, requireRole("SUPER_ADMIN"), orderController.getCompanyOrders)
 
 
 
