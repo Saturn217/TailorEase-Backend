@@ -172,25 +172,25 @@ const getCompanyOrders = async (companyId, customerId, type, status, page, limit
 }
 
 
-const getCustomerOrders = async (companyId, customerId, type, status, page, limit) =>{
+const getCustomerOrders = async (companyId, customerId, type, status, page, limit) => {
     const currentPage = parseInt(page) || 1
     const pageSize = parseInt(limit) || 10
     const skip = (currentPage - 1) * pageSize
 
     const customer = await prisma.customer.findFirst({
-        where:{id:customerId, companyId},
-            select:{fullName: true}
+        where: { id: customerId, companyId },
+        select: { fullName: true }
 
     })
 
-    if(!customer){
+    if (!customer) {
         throw new AppError("No customer found", 404)
     }
 
     const [order, totalCount] = await Promise.all([
         prisma.order.findMany({
-            where:{companyId, customerId, ...(type?{type}:{}), ...(status?{status}:{})},
-            select:{
+            where: { companyId, customerId, ...(type ? { type } : {}), ...(status ? { status } : {}) },
+            select: {
                 id: true,
                 customerId: true,
                 title: true,
@@ -200,7 +200,7 @@ const getCustomerOrders = async (companyId, customerId, type, status, page, limi
                 updatedAt: true,
                 staffId: true,
                 notes: true,
-               
+
                 staff: {
                     select: {
                         fullName: true
@@ -209,18 +209,18 @@ const getCustomerOrders = async (companyId, customerId, type, status, page, limi
                 parentOrderId: true
 
             },
-             orderBy: { createdAt: 'desc' },
+            orderBy: { createdAt: 'desc' },
             skip,
             take: pageSize
 
 
         }),
         prisma.order.count({
-            where:{companyId, customerId, ...(type?{type}:{}), ...(status?{status}:{})}
+            where: { companyId, customerId, ...(type ? { type } : {}), ...(status ? { status } : {}) }
         })
     ])
 
-    if(order.length === 0){ 
+    if (order.length === 0) {
         throw new AppError("No orders found for this customer", 404)
     }
 
@@ -244,9 +244,122 @@ const getCustomerOrders = async (companyId, customerId, type, status, page, limi
 
 }
 
+const updateOrderStatus = async (companyId, staffId, role, orderId, status) => {
+    const validStatuses = ["RECEIVED", "CUT_IN_PROGRESS", "SEWING_IN_PROGRESS", "FINISHING", "COMPLETED"]
+
+    if (!validStatuses.includes(status)) {
+        throw new AppError("Invalid Status", 400)
+    }
+
+    if (role === "STAFF" && status === "COMPLETED") {
+        throw new AppError('Only super admin can mark an order as completed', 403)
+
+    }
+
+    const order = await prisma.order.findFirst({
+        where: { id: orderId, companyId },
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            createdAt: true,
+            updatedAt: true,
+            staff: {
+                select: {
+                    id: true,
+                    fullName: true
+                }
+
+            },
+            customer: {
+                select: {
+                    fullName: true,
+                    email: true
+                }
+
+            }
+
+        }
+
+
+    })
+
+    if (!order) {
+        throw new AppError("Order not found", 404)
+    }
+
+    if (order.status === status) {
+        throw new AppError(`Order is already in ${status} status`, 400)
+    }
+
+    const StatusMessage = {
+        RECEIVED: "Order has been received",
+        CUT_IN_PROGRESS: "Order is being cut",
+        SEWING_IN_PROGRESS: "Order is beign sewn",
+        FINISHING: "Order is in finishing stage",
+        COMPLETED: "Order is ready for pickup",
+
+    }
+
+    let newStatusHistory
+    await prisma.$transaction(async (tx) => {
+        await tx.order.update({
+            where: { id: orderId },
+            data: { status }
+        })
+
+        newStatusHistory = await tx.statusHistory.create({
+            data: {
+                orderId,
+                status,
+                updatedById: staffId
+            }
+        })
+    })
+
+
+    if (status === "COMPLETED") {
+
+        await sendEmail({
+            to: order.customer.email,
+            subject: 'Order completed',
+            html: `<p>Hi ${order.customer.fullName}, your order "${order.title}" is ready for pickup</p>`
+        })
+    }
+
+
+    return {
+        message: StatusMessage[status],
+        order: {
+            id: order.id,
+            title: order.title,
+            previousStatus: order.status,
+            newStatus: status,
+            updatedBy: {
+                id: staffId,
+                fullName: order.staff.fullName
+            },
+            orderCreatedAt: order.createdAt,
+            orderUpdatedAt: order.updatedAt
+
+        },
+        statusHistory: {
+            orderId: newStatusHistory.orderId,
+            status: newStatusHistory.status,
+            updatedById: newStatusHistory.updatedById,
+            createdAt: newStatusHistory.createdAt
+        }
+
+
+    }
+
+
+
+}
 
 
 
 
-    module.exports = { createOrder, getCompanyOrders, getCustomerOrders }
+
+module.exports = { createOrder, getCompanyOrders, getCustomerOrders, updateOrderStatus }
 

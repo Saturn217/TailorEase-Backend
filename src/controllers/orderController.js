@@ -1,6 +1,6 @@
 const orderService = require("../services/orderService")
 const AppError = require("../utils/appError")
-const { order } = require("../utils/prisma")
+const { order, staff } = require("../utils/prisma")
 
 
 const createOrder = async (req, res)=>{
@@ -53,5 +53,25 @@ const getCustomerOrders = async (req, res)=>{
     }
 }
 
+const updateOrderStatus = async (req, res) =>{
+    try {
+        const {companyId, staffId, role} = req.user
+        const {orderId} = req.params
+        const {status} = req.body
+       
 
-module.exports = { createOrder, getCompanyOrders, getCustomerOrders}
+        const result = await orderService.updateOrderStatus(companyId, staffId, role, orderId, status)
+
+        res.status(200).json(result)
+        
+    } catch (error) {
+        const statusCode = error.statusCode || 500
+        res.status(statusCode).json({
+            message: error.message
+        })
+        
+    }
+}
+
+
+module.exports = { createOrder, getCompanyOrders, getCustomerOrders, updateOrderStatus}
