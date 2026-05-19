@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require("../utils/prisma");
 const AppError = require('../utils/AppError');
+const { validateEmail, validatePassword } = require('../utils/validators');
+
 
 
 const generateCompanyCode = () => {
@@ -17,16 +19,20 @@ const registerCompany = async (data) => {
     const { companyName, email, companyImage, password, ownerFullname, ownerEmail, ownerPhone } = data;
 
 
-    if (!companyName || !email || !password || !companyImage || !ownerFullname || !ownerEmail || !ownerPhone) {
-        throw new Error('All fields are required')
+    if (!companyName || !email || !password || !ownerFullname || !ownerEmail || !ownerPhone) {
+        throw new AppError('All fields are required', 400)
     }
+
+    validateEmail(email)
+    validateEmail(ownerEmail)
+    validatePassword(password)
 
     const existingCompany = await prisma.company.findUnique({
         where: { email }
     })
 
     if (existingCompany) {
-        throw new Error('Company Email already exists')
+        throw new AppError('Company Email already exists', 400)
     }
 
     const existingStaff = await prisma.staff.findUnique({
@@ -34,7 +40,7 @@ const registerCompany = async (data) => {
     })
 
     if (existingStaff) {
-        throw new Error('Owner email already exists')
+        throw new AppError('Owner email already exists', 400)
     }
 
 
@@ -164,6 +170,9 @@ const registerStaff = async (data) => {
     if (!companyCode || !fullName || !email || !password) {
         throw new AppError('All fields are required', 400)
     }
+
+    validateEmail(email)
+    validatePassword(password)
 
 
     const company = await prisma.company.findUnique({
