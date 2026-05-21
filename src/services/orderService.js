@@ -3,6 +3,7 @@ const AppError = require('../utils/AppError');
 const sendEmail = require("../utils/email")
 const { init, get } = require("../app");
 const { registerCompany } = require("../controllers/authController");
+const { cloudinary } = require("../utils/cloudinary")
 
 
 
@@ -135,6 +136,23 @@ const getCompanyOrders = async (companyId, customerId, type, status, page, limit
                     }
                 },
 
+                photos: {
+                    select: {
+                        id: true,
+                        url: true,
+                        caption: true,
+                        uploadedAt: true,
+                        uploadedByStaff: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                            }
+                        }
+                    }
+                },
+                parentOrderId: true
+
+
             },
             orderBy: { createdAt: 'desc' },
             skip,
@@ -158,7 +176,7 @@ const getCompanyOrders = async (companyId, customerId, type, status, page, limit
 
     return {
         message: 'Orders retrieved successfully',
-        orders,
+        orders: orders,
         pagination: {
             totalCount,
             totalPages: Math.ceil(totalCount / pageSize),
@@ -200,7 +218,20 @@ const getCustomerOrders = async (companyId, customerId, type, status, page, limi
                 updatedAt: true,
                 staffId: true,
                 notes: true,
-
+                photos: {
+                    select: {
+                        id: true,
+                        url: true,
+                        caption: true,
+                        uploadedAt: true,
+                        uploadedByStaff: {
+                            select: {
+                                id: true,
+                                fullName: true,
+                            }
+                        }
+                    }
+                },
                 staff: {
                     select: {
                         fullName: true
@@ -349,17 +380,70 @@ const updateOrderStatus = async (companyId, staffId, role, orderId, status) => {
             updatedById: newStatusHistory.updatedById,
             createdAt: newStatusHistory.createdAt
         }
-
-
     }
 
+}
 
+const uploadOrderPhoto = async (companyId, staffId, orderId, file, caption) => {
 
+    const order = await prisma.order.findFirst({
+        where: { id: orderId, companyId },
+        select: {
+            title: true,
+            customer: {
+                select: {
+                    fullName: true
+                }
+            }
+
+        }
+    })
+
+    if (!order) {
+        throw new AppError("No order found", 404)
+    }
+
+    const photo = await prisma.orderPhoto.create({
+        data: {
+            orderId,
+            url: file.path,
+            uploadedBy: staffId,
+            caption: caption || null
+
+        },
+        include: {
+            uploadedByStaff: {
+                select: {
+                    id: true,
+                    fullName: true,
+                }
+            }
+        }
+
+    })
+
+    return {
+        message: "Order photo successfuly uploaded",
+        orderTitle: order.title,
+        customerName: order.customer.fullName,
+        photo: {
+            id: photo.id,
+            orderId: photo.orderId,
+            url: photo.url,
+            caption: photo.caption,
+            uploadedAt: photo.uploadedAt,
+            uploadedBy: {
+                id: photo.uploadedByStaff.id,
+                fullName: photo.uploadedByStaff.fullName
+
+            }
+        }
+    }
 }
 
 
 
 
 
-module.exports = { createOrder, getCompanyOrders, getCustomerOrders, updateOrderStatus }
+module.exports = { createOrder, getCompanyOrders, getCustomerOrders, updateOrderStatus, uploadOrderPhoto }
 

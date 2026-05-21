@@ -39,6 +39,7 @@ model Staff {
   customersCreated Customer[]
   measurementsCreated Measurement[]
   measurementsUpdated Measurement[] @relation("MeasurementUpdatedBy")
+  photosUploaded   OrderPhoto[]
   orders           Order[]
   statusHistory    StatusHistory[]
 }
@@ -111,10 +112,12 @@ model Order {
 model OrderPhoto {
   id         String   @id @default(uuid())
   orderId    String
+  uploadedBy String
   url        String
   caption    String?
   uploadedAt DateTime @default(now())
   order      Order    @relation(fields: [orderId], references: [id])
+  uploadedByStaff Staff @relation(fields: [uploadedBy], references: [id])
 }
 
 model StatusHistory {

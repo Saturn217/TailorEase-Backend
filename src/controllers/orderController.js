@@ -63,7 +63,7 @@ const updateOrderStatus = async (req, res) =>{
         const result = await orderService.updateOrderStatus(companyId, staffId, role, orderId, status)
 
         res.status(200).json(result)
-        
+
     } catch (error) {
         const statusCode = error.statusCode || 500
         res.status(statusCode).json({
@@ -73,5 +73,26 @@ const updateOrderStatus = async (req, res) =>{
     }
 }
 
+const uploadOrderPhoto = async (req, res) =>{
+    try {
+        const {companyId, staffId} = req.user
+        const {orderId} = req.params
+        const {caption} = req.body
 
-module.exports = { createOrder, getCompanyOrders, getCustomerOrders, updateOrderStatus}
+        const file = req.file
+        if(!file){
+            throw new AppError("No file uploaded", 400)
+        }
+
+        const result = await orderService.uploadOrderPhoto(companyId, staffId, orderId, file, caption)
+        res.status(200).json(result)
+    } catch (error) {
+        const statusCode = error.statusCode || 500
+        res.status(statusCode).json({
+            message: error.message
+        })
+    }
+}
+
+
+module.exports = { createOrder, getCompanyOrders, getCustomerOrders, updateOrderStatus, uploadOrderPhoto}
