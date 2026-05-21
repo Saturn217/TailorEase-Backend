@@ -13,10 +13,10 @@ const generateCompanyCode = () => {
     return `TSE-${number}`
 }
 
-const registerCompany = async (data) => {
+const registerCompany = async (data, file) => {
 
-
-    const { companyName, email, companyImage, password, ownerFullname, ownerEmail, ownerPhone } = data;
+    const companyImage = file ? file.path : null
+    const { companyName, email, password, ownerFullname, ownerEmail, ownerPhone } = data;
 
 
     if (!companyName || !email || !password || !ownerFullname || !ownerEmail || !ownerPhone) {
@@ -55,7 +55,7 @@ const registerCompany = async (data) => {
                 companyCode,
                 companyName,
                 email,
-                companyImage: companyImage || null,
+                companyImage: companyImage,
                 passwordHash: hashedPassword,
                 status: 'PENDING',
                 ownerFullname: ownerFullname,
@@ -87,6 +87,7 @@ const registerCompany = async (data) => {
         companyName: result.company.companyName,
         id: result.company.id,
         email: result.company.email,
+        companyImage: result.company.companyImage,
         owner: {
             fullName: result.staff.fullName,
             email: result.staff.email,

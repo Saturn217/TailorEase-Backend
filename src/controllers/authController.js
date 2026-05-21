@@ -4,7 +4,7 @@ const AppError = require('../utils/AppError');
 
 const registerCompany = async (req, res) => {
     try {
-        const result = await authService.registerCompany(req.body);
+        const result = await authService.registerCompany(req.body, req.file);
         res.status(201).send(result);
     }
     catch (error) {
