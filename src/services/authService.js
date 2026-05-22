@@ -231,4 +231,8 @@ const registerStaff = async (data) => {
 
 }
 
-module.exports = { registerCompany, login, registerStaff }
+
+
+
+
+module.exports = { registerCompany, login, registerStaff};

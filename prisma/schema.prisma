@@ -19,6 +19,7 @@ model Company {
   ownerEmail    String
   ownerPhone    String
   createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @default(now()) @updatedAt
   staff         Staff[]
   customers     Customer[]
   templates     MeasurementTemplate[]

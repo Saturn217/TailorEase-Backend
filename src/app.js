@@ -29,6 +29,9 @@ app.use("/api/v1/measurements", measurementRoutes)
 const orderRoutes = require("./routes/order.routes")
 app.use("/api/v1/orders", orderRoutes)
 
+const companyRoutes = require("./routes/company.routes")
+app.use("/api/v1/company", companyRoutes)
+
 
 app.get('/', (req, res) => {
     res.send({

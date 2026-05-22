@@ -229,7 +229,6 @@ const updateTemplate = async (companyId, templateId, data) => {
         updatedField = template.fieldDefinitions.filter(field => field.fieldId !== deleteFieldId)
 
 
-
     }
 
 

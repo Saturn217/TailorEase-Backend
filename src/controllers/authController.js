@@ -37,4 +37,5 @@ const registerStaff = async (req, res)=>{
     }
 }
 
-module.exports = { registerCompany, login, registerStaff };
+
+module.exports = { registerCompany, login, registerStaff};
