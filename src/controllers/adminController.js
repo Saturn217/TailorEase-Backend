@@ -3,22 +3,19 @@ const adminService = require('../services/adminService')
 const AppError = require('../utils/AppError')
 
 
-const getAllCompanies = async (req, res) => {
+const getAllCompanies = async (req, res, next) => {
     try {
         const { status, page, limit } = req.query
         const result = await adminService.getAllCompanies(status, page, limit)
         res.status(200).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+        next(error)
 
     }
 }
 
 
-const updateCompanyStatus = async (req, res) => {
+const updateCompanyStatus = async (req, res, next) => {
     try {
         const { companyId } = req.params
         const { status } = req.body
@@ -27,25 +24,22 @@ const updateCompanyStatus = async (req, res) => {
     }
 
     catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+        next(error)
     }
 }
 
 
-const adminLogin = async (req, res) => {
+const adminLogin = async (req, res, next) => {
     try {
         const { email, password } = req.body
 
         if (!email || !password) {
 
-            return res.status(400).json({ message: 'Email and password are required' })
+            throw new AppError( 'Email and password are required', 400)
         }
 
         if (email !== process.env.APP_ADMIN_EMAIL || password !== process.env.APP_ADMIN_PASSWORD) {
-            return res.status(401).json({ message: 'Invalid email or password' })
+          throw new AppError('Invalid email or password', 401)
 
         }
 
@@ -57,10 +51,7 @@ const adminLogin = async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({
-            message: 'An error occurred during admin login',
-            error: error.message
-        })
+        next(error)
     }
 }
 

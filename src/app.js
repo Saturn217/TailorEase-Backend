@@ -8,6 +8,7 @@ app.use(cors());
 app.use(express.json());
 
 const authRoutes = require('./routes/auth.routes');
+const errorHandler = require('./middleware/errorHandler');
 app.use("/api/v1/auth", authRoutes);
 
 const adminRoutes = require('./routes/admin.routes');
@@ -29,8 +30,10 @@ app.use("/api/v1/measurements", measurementRoutes)
 const orderRoutes = require("./routes/order.routes")
 app.use("/api/v1/orders", orderRoutes)
 
-const companyRoutes = require("./routes/company.routes")
+const companyRoutes = require("./routes/company.routes");
+
 app.use("/api/v1/company", companyRoutes)
+
 
 
 app.get('/', (req, res) => {
@@ -38,7 +41,7 @@ app.get('/', (req, res) => {
         message: 'Welcome to TailorEase API'
     })
 })
-
+app.use(errorHandler)
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
 });

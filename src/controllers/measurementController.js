@@ -1,8 +1,8 @@
 const measurementService = require("../services/measurementService")
-const AppError = require("../utils/AppError")
 
 
-const createMeasurement = async (req, res) => {
+
+const createMeasurement = async (req, res, next) => {
 
     try {
         const { companyId, staffId } = req.user
@@ -12,15 +12,12 @@ const createMeasurement = async (req, res) => {
         const result = await measurementService.createMeasurement(companyId, staffId, customerId, req.body)
         res.status(201).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+        next(error)
 
     }
 }
 
-const getCustomerMeasurements = async (req, res) => {
+const getCustomerMeasurements = async (req, res, next) => {
     try {
         const { companyId } = req.user
         const { customerId } = req.params
@@ -29,15 +26,12 @@ const getCustomerMeasurements = async (req, res) => {
         const result = await measurementService.getCustomerMeasurements(companyId, customerId, page, limit)
         res.status(200).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+        next(error)
     }
 }
 
 
-const getCompanyMeasurements = async (req, res) => {
+const getCompanyMeasurements = async (req, res, next) => {
     try {
         const { companyId } = req.user
         const { page, limit } = req.query
@@ -46,14 +40,11 @@ const getCompanyMeasurements = async (req, res) => {
         res.status(200).json(result)
         
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+       next(error)
     }
 }
 
-const updateMeasurement = async (req, res) => {
+const updateMeasurement = async (req, res, next) => {
     try {
         const {companyId, staffId} = req.user
         const {customerId, measurementId} = req.params
@@ -63,10 +54,7 @@ const updateMeasurement = async (req, res) => {
 
 
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+        next(error)
     }
 }
 

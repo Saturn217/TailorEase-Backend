@@ -1,10 +1,10 @@
 
 
 const staffService = require('../services/staffService')
-const AppError = require("../utils/AppError")
 
 
-const getAllStaff = async (req, res) => {
+
+const getAllStaff = async (req, res, next) => {
 
     try {
            const { companyId } = req.user
@@ -12,13 +12,12 @@ const getAllStaff = async (req, res) => {
         const result = await staffService.getAllStaff(companyId, status, page, limit)
         res.status(200).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({ message: error.message })
+       next(error)
     }
 
 }
 
-const updateStaffStatus = async (req, res) => {
+const updateStaffStatus = async (req, res, next) => {
 
     try {
         const { companyId } = req.user
@@ -28,8 +27,7 @@ const updateStaffStatus = async (req, res) => {
         const result = await staffService.updateStaffStatus(companyId, staffId, status)
         res.status(200).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({ message: error.message })
+       next(error)
     }
 }
 

@@ -1,57 +1,48 @@
 const templateService = require("../services/templateService")
-const AppError = require("../utils/AppError")
 
 
-const createTemplate = async (req, res) => {
+
+const createTemplate = async (req, res, next) => {
 
     try {
         const { companyId } = req.user
-        const { name, fieldDefinitions } = req.body
+       
         console.log(req.body)
 
         const result = await templateService.createTemplate(companyId, req.body)
         res.status(201).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({ message: error.message })
-
+      next(error)
     }
 }
 
-const getAllTemplates = async (req, res) => {
+const getAllTemplates = async (req, res, next) => {
     try {
         const { companyId } = req.user
         const { page, limit } = req.query
 
         const result = await templateService.getAllTemplates(companyId, page, limit)
-        res.status(201).json(result)
+        res.status(200).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+       next(error)
     }
 }
 
-const updateTemplate = async (req, res) => {
+const updateTemplate = async (req, res, next) => {
     try {
         const { companyId } = req.user
         const { templateId } = req.params
-        const { newTemplateName, fields, deleteFieldId } = req.body
 
         const result = await templateService.updateTemplate(companyId, templateId, req.body)
         res.status(200).json(result)
 
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+       next(error)
 
     }
 }
 
-const deleteTemplate = async (req, res) => {
+const deleteTemplate = async (req, res, next) => {
     try {
         const { companyId } = req.user
         const { templateId } = req.params
@@ -59,10 +50,7 @@ const deleteTemplate = async (req, res) => {
         const result = await templateService.deleteTemplate(companyId, templateId)
         res.status(200).json(result)
     } catch (error) {
-        const statusCode = error.statusCode || 500
-        res.status(statusCode).json({
-            message: error.message
-        })
+       next(error)
     }
 }
 
